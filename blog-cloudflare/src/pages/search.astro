@@ -18,7 +18,12 @@ const hrefOf = (r: (typeof results)[number]) =>
 	`/${r.collection === "pages" ? "pages" : "posts"}/${r.slug ?? r.id}`;
 ---
 
-<Base title={query ? t.titleFor(query) : t.title} description={t.description} robots="noindex">
+<Base
+	title={query ? t.titleFor(query) : t.title}
+	description={t.description}
+	robots="noindex"
+	cache={false}
+>
 	<div class="search">
 		<header class="search-head">
 			<h1>{t.title}</h1>

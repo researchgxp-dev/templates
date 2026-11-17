@@ -1,5 +1,9 @@
 ---
-import { getMenu, getSiteSettings, getTaxonomyTerms } from "emdash";
+import {
+	getMenuWithCacheHint,
+	getSiteSettingsWithCacheHint,
+	getTaxonomyTermsWithCacheHint,
+} from "emdash";
 import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
 import LiveSearch from "emdash/ui/search";
@@ -25,6 +29,8 @@ interface Props {
 	content?: { collection: string; id: string; slug?: string | null };
 	/** Home page only: full-width nameplate as the page's h1, header not sticky */
 	home?: boolean;
+	/** Keep search and error pages out of the shared cache. */
+	cache?: boolean;
 }
 
 const {
@@ -40,22 +46,55 @@ const {
 	author,
 	content,
 	home = false,
+	cache = true,
 } = Astro.props;
+const [settingsResult, menuResult, sectionsResult, footerResult, socialResult, categoryResult] =
+	await Promise.all([
+		getSiteSettingsWithCacheHint(),
+		getMenuWithCacheHint("primary"),
+		getMenuWithCacheHint("sections"),
+		getMenuWithCacheHint("footer"),
+		getMenuWithCacheHint("social"),
+		getTaxonomyTermsWithCacheHint("category"),
+	]);
 const { siteTitle, siteTagline, siteLogo, siteFavicon } = resolveBlogSiteIdentity(
-	await getSiteSettings(),
+	settingsResult.data,
 );
 // If title already includes site title (from getSeoMeta), use as-is
 const fullTitle = title.includes(siteTitle) ? title : `${title} — ${siteTitle}`;
 
-const [menu, sectionsMenu, footerMenu, socialMenu, sectionTerms] = await Promise.all([
-	getMenu("primary"),
-	getMenu("sections"),
-	getMenu("footer"),
-	getMenu("social"),
-	getTaxonomyTerms("category"),
-]);
+// Every cached route must depend on the menus it renders, not just its content.
+// EmDash invalidates these tags when an editor saves a menu or site setting.
+if (Astro.cache?.enabled) {
+	if (!cache || Astro.response.status !== 200) {
+		Astro.cache.set(false);
+	} else {
+		for (const result of [
+			settingsResult,
+			menuResult,
+			sectionsResult,
+			footerResult,
+			socialResult,
+			categoryResult,
+		]) {
+			Astro.cache.set(result.cacheHint);
+		}
+	}
+}
+const menu = menuResult.data;
+const sectionsMenu = sectionsResult.data;
+const footerMenu = footerResult.data;
+const socialMenu = socialResult.data;
+const sectionTerms = categoryResult.data;
 const primaryItems = menu?.items ?? [];
-const hasPagesLink = primaryItems.some((item) => item.url.replace(/\/+$/, "") === "/pages");
+const hasPagesLink = primaryItems.some((item) => {
+	try {
+		const url = new URL(item.url, Astro.url);
+		return url.origin === Astro.url.origin && url.pathname.replace(/\/+$/, "") === "/pages";
+	} catch {
+		return false;
+	}
+});
 const navigationItems = hasPagesLink
 	? primaryItems
 	: [...primaryItems, { label: ui.nav.pages, url: "/pages", target: undefined }];
