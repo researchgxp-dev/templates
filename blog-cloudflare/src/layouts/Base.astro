@@ -54,6 +54,11 @@ const [menu, sectionsMenu, footerMenu, socialMenu, sectionTerms] = await Promise
 	getMenu("social"),
 	getTaxonomyTerms("category"),
 ]);
+const primaryItems = menu?.items ?? [];
+const hasPagesLink = primaryItems.some((item) => item.url.replace(/\/+$/, "") === "/pages");
+const navigationItems = hasPagesLink
+	? primaryItems
+	: [...primaryItems, { label: ui.nav.pages, url: "/pages", target: undefined }];
 // Setup without sample content creates the menus but not the sections they point to.
 // Hide /category/<slug> items until that section exists, so the strip never links to a 404.
 const sectionSlugs = new Set(sectionTerms.map((t) => t.slug));
@@ -124,9 +129,9 @@ const pageCtx = createPublicPageContext({
 						)}
 					</a>
 				)}
-				{menu && menu.items.length > 0 && (
+				{navigationItems.length > 0 && (
 					<nav class="nav-links" aria-label={ui.nav.primary}>
-						{menu.items.map((item) => (
+						{navigationItems.map((item) => (
 							<a
 								href={item.url}
 								target={item.target}
@@ -155,10 +160,11 @@ const pageCtx = createPublicPageContext({
 							siteTitle
 						)}
 					</h1>
-					<p class="edition">
-						<span>{ui.edition(edition.volume, edition.number)}</span>
-						{siteTagline && <span>{siteTagline}</span>}
-					</p>
+					{siteTagline && (
+						<p class="edition">
+							<span>{siteTagline}</span>
+						</p>
+					)}
 				</div>
 			)}
 			{sectionItems.length > 0 && (
@@ -211,9 +217,12 @@ const pageCtx = createPublicPageContext({
 				</div>
 				<div class="footer-bottom">
 					<p class="colophon">
-						{siteTitle} · {edition.date} · {ui.edition(edition.volume, edition.number)} ·{" "}
-						{ui.publishedWith} <a href="https://emdashcms.com">EmDash</a> ·{" "}
-						<a href="https://ondelva.com/themes/masthead" rel="nofollow">Masthead</a> theme by ondelva
+						{siteTitle} · {edition.date} · {ui.publishedWith}{" "}
+						<a href="https://emdashcms.com">EmDash</a> ·{" "}
+						<a href="https://ondelva.com/themes/masthead" rel="nofollow">
+							Masthead
+						</a>{" "}
+						theme by ondelva
 					</p>
 					<div class="theme-switcher" role="group" aria-label={ui.theme.label}>
 						<button type="button" class="theme-btn" data-theme="light" aria-label={ui.theme.light}>

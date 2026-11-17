@@ -10,7 +10,13 @@ export const locale = "en";
 
 export const ui = {
 	skipToContent: "Skip to content",
-	nav: { primary: "Primary", sections: "Sections", footer: "Footer", social: "Social" }, // read out
+	nav: {
+		primary: "Primary",
+		sections: "Sections",
+		footer: "Footer",
+		social: "Social",
+		pages: "Pages",
+	},
 	searchPlaceholder: "Search", // the header's instant search
 	edition: (volume: number, number: number) => `Vol. ${volume}, No. ${number}`,
 	publishedWith: "Published with", // before the EmDash link in the footer
@@ -45,6 +51,12 @@ export const ui = {
 		title: "All articles",
 		description: "Every article, newest first.",
 		empty: "Nothing published yet.",
+	},
+	pages: {
+		title: "All pages",
+		description: "Published pages, newest first.",
+		empty: "No pages published yet.",
+		older: "Older pages",
 	},
 	post: {
 		by: "By",

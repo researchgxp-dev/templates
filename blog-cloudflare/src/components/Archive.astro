@@ -11,6 +11,8 @@ interface Props {
 	eyebrow?: string;
 	description?: string | null;
 	posts: Post[];
+	collection?: "posts" | "pages";
+	olderLabel?: string;
 	/** From getEmDashCollection; links to the next page when set */
 	nextCursor?: string;
 	/** First page of a section front: the newest story runs larger across two columns */
@@ -27,6 +29,8 @@ const {
 	eyebrow,
 	description,
 	posts,
+	collection = "posts",
+	olderLabel = ui.archive.older,
 	nextCursor,
 	lead = false,
 	sectionKicker = true,
@@ -55,7 +59,7 @@ const kickerOf = (p: Post) =>
 					<li class:list={{ lead: lead && i === 0 }}>
 						<PostCard
 							title={p.data.title}
-							href={`/posts/${p.id}`}
+							href={`/${collection}/${p.id}`}
 							kicker={kickerOf(p)}
 							excerpt={p.data.excerpt}
 							featuredImage={p.data.featured_image}
@@ -76,7 +80,7 @@ const kickerOf = (p: Post) =>
 			{cursor && <a href={Astro.url.pathname}>{ui.archive.newest}</a>}
 			{nextCursor && (
 				<a href={`${Astro.url.pathname}?cursor=${encodeURIComponent(nextCursor)}`} rel="next">
-					{ui.archive.older}
+					{olderLabel}
 				</a>
 			)}
 		</nav>
