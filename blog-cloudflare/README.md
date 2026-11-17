@@ -1,68 +1,94 @@
-# EmDash Blog Template (Cloudflare)
+# Masthead
 
-A clean, minimal blog built with [EmDash](https://github.com/emdash-cms/emdash) and deployed on Cloudflare Workers with D1 and R2.
+This ResearchGxP deployment uses EmDash 1.5.0 and the existing Cloudflare Worker,
+D1 database, R2 bucket, and session namespace. See
+[deployment notes](docs/researchgxp-deployment.md) for its configuration.
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/emdash-cms/templates/tree/main/blog-cloudflare)
+A newspaper-style news theme for [EmDash](https://github.com/emdash-cms/emdash), the CMS built on Astro. Made for editorial teams: many authors, sections, and desks. Rules and hierarchy do the work, not decoration.
 
-![Blog template homepage](https://raw.githubusercontent.com/emdash-cms/emdash/main/assets/templates/blog/latest/homepage-light-desktop.jpg)
+[Live demo](https://masthead-free.ondelva.com) · [Admin demo](https://masthead-free.ondelva.com/demo) · [Docs](docs/customization.md) · [Pro demo](https://masthead.ondelva.com) · [Get Pro](https://buy.polar.sh/polar_cl_5QWr1VFC0mYPuUIObySlgyfGa3MYodyZaI3AU0xmwI4?utm_source=github)
 
-## What's Included
+![screenshot](docs/screenshots/home-light.png)
 
-- Featured post hero on the homepage
-- Post archive with reading time estimates
-- Category and tag archives
-- Full-text search
-- RSS feed
-- SEO metadata and JSON-LD
-- Dark/light mode
+The admin demo signs you in as a contributor: you can write drafts and upload media, and the demo resets every week.
 
-## Pages
+## Features
 
-| Page | Route |
-|---|---|
-| Homepage | `/` |
-| All posts | `/posts` |
-| Single post | `/posts/:slug` |
-| Category archive | `/category/:slug` |
-| Tag archive | `/tag/:slug` |
-| Search | `/search` |
-| Static pages | `/pages/:slug` |
-| 404 | fallback |
+- EmDash CMS on Astro 7, server-rendered on Cloudflare Workers with D1 and R2
+- Public pages cached at the edge (Workers Caching) and purged when content changes — see [docs/customization.md](docs/customization.md#caching)
+- Full admin UI for editors: posts, pages, sections, authors, media
+- Front page with a full-width nameplate, dense column grid, and vertical rules
+- Single-column article view with bylines, reading time, and a lead-story drop cap
+- Category and tag archives, full-text search, RSS, SEO metadata and JSON-LD
+- Dark mode, responsive from 360px, no client-side framework on public pages
+- `AGENTS.md` included — works out of the box with Claude Code / Cursor
 
-## Screenshots
+## Quick start
 
-| | Desktop | Mobile |
-|---|---|---|
-| Light | ![homepage light desktop](https://raw.githubusercontent.com/emdash-cms/emdash/main/assets/templates/blog/latest/homepage-light-desktop.jpg) | ![homepage light mobile](https://raw.githubusercontent.com/emdash-cms/emdash/main/assets/templates/blog/latest/homepage-light-mobile.jpg) |
-| Dark | ![homepage dark desktop](https://raw.githubusercontent.com/emdash-cms/emdash/main/assets/templates/blog/latest/homepage-dark-desktop.jpg) | ![homepage dark mobile](https://raw.githubusercontent.com/emdash-cms/emdash/main/assets/templates/blog/latest/homepage-dark-mobile.jpg) |
+```sh
+pnpm create astro@latest my-site --template ondelva/astro-theme-masthead
+cd my-site
+npx emdash secrets generate --write .env
+pnpm dev
+```
 
-## Infrastructure
+The `secrets` line creates `EMDASH_ENCRYPTION_KEY` in `.env` (see [docs/deploy.md](docs/deploy.md#secrets)). `git clone` works too.
+Open `http://localhost:4321/_emdash/admin` and finish setup. The sample content is applied on first setup.
 
-- **Runtime:** Cloudflare Workers
-- **Database:** D1
-- **Storage:** R2
-- **Framework:** Astro with `@astrojs/cloudflare`
+## Configure
 
-## Local Development
+Site title, tagline, logo, menus, and authors are edited in the admin UI, not in code.
+Colors and fonts: override tokens in `src/styles/theme.css`; webfonts are set under `fonts:` in `astro.config.mjs`.
+Every word the theme prints, and the language: `src/utils/ui.ts`.
+See [docs/customization.md](docs/customization.md).
 
-```bash
+## Requirements
+
+- Node.js 22.12 or later, pnpm 9 or newer (`packageManager` pins the exact version; pnpm 10+ switches to it)
+- Cloudflare Workers. This deployment retains the account's Free plan. The current platform allows a 64 MiB uncompressed Worker on Free; request and CPU quotas still apply.
+- Tested with EmDash 1.5.0. Dependencies are pinned to exact versions.
+
+## Local development
+
+```sh
 pnpm install
 pnpm dev
 ```
 
-Open http://localhost:4321/_emdash/admin and complete the setup wizard. EmDash runs database migrations and applies the blog seed during setup. The site is available at http://localhost:4321.
+`pnpm reset` wipes the local D1 database and R2 uploads, then starts the dev server so setup (and the seed) runs again.
 
-## Deploying
+## Deploy
 
-```bash
-pnpm wrangler login
-pnpm deploy
+```sh
+npx wrangler r2 bucket create masthead-media               # wrangler deploy creates D1 and KV, not R2
+EMDASH_SITE_URL=https://your-site.example pnpm deploy      # the URL is read at build time
+npx wrangler secret put EMDASH_ENCRYPTION_KEY              # paste the value from .env
 ```
 
-The first deployment provisions the named D1 database and R2 bucket from `wrangler.jsonc`. See [Deploy to Cloudflare](https://docs.emdashcms.com/deployment/cloudflare/) for production setup, or use the deploy button above.
+`EMDASH_SITE_URL` lets Astro resize images and build absolute links; without it images are served full size.
+Not sure of the URL yet? Deploy once, then deploy again with the `workers.dev` address it prints.
 
-## See Also
+Finish setup immediately after the first deploy: until an admin account exists, the setup page is public.
+See [docs/deploy.md](docs/deploy.md).
 
-- [Node.js variant](../blog) -- same template using SQLite and local file storage
-- [All templates](../)
-- [EmDash documentation](https://docs.emdashcms.com/)
+## Free vs Pro
+
+This is the free, MIT-licensed edition. Masthead Pro is built on the same code and adds the following ([Pro demo](https://masthead.ondelva.com)):
+
+|               | Free                                                   | Pro                                                    |
+| ------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| Pages         | Home, articles, sections, tags, authors, search, legal | + Podcast, page layouts (Cover, Sign-up)               |
+| Podcast       | –                                                      | Episodes, player, Apple/Spotify-ready RSS feed         |
+| Membership    | –                                                      | Email-link sign-in, members-only articles and episodes |
+| Forms         | –                                                      | Newsletter and corrections forms                       |
+| Front page    | Lead, top stories, section columns set in the admin    | + Podcast strip                                        |
+| OG images     | –                                                      | Generated per article                                  |
+| Footer credit | One line, easy to remove                               | None                                                   |
+| Support       | GitHub Issues                                          | Email (im@ondelva.com), 2 business days                |
+
+[See the Pro demo →](https://masthead.ondelva.com) · [Get Pro →](https://buy.polar.sh/polar_cl_5QWr1VFC0mYPuUIObySlgyfGa3MYodyZaI3AU0xmwI4?utm_source=github)
+
+## License
+
+[MIT](LICENSE).
+Third-party assets: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)

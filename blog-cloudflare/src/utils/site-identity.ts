@@ -20,5 +20,7 @@ export function resolveBlogSiteIdentity(settings?: BlogSiteIdentitySettings) {
 		siteTitle: settings?.title ?? DEFAULT_SITE_TITLE,
 		siteTagline: settings?.tagline ?? DEFAULT_SITE_TAGLINE,
 		siteLogo: settings?.logo?.url ? settings.logo : null,
+		// Admin UI → Settings → Favicon, or the theme's public/favicon.svg.
+		siteFavicon: settings?.favicon?.url ?? "/favicon.svg",
 	};
 }

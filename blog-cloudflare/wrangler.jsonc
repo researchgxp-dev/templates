@@ -1,25 +1,40 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "templates",
+	"account_id": "ea05afda8e7e1e0c472efd02a84c6a7d",
 	"main": "./src/worker.ts",
 	"compatibility_date": "2026-02-24",
 	"compatibility_flags": ["nodejs_compat"],
 	"vars": {
 		"EMDASH_SITE_URL": "https://blogs.researchgxp.com"
 	},
+	// Workers Caching: serves cached pages without running the Worker. src/worker.ts keeps
+	// everything else out of it.
+	"cache": { "enabled": true },
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "researchgxp-blog",
+			"database_id": "95443d4e-55bd-4569-afa8-92dc00b30771",
+			"remote": false,
 		},
 	],
 	"r2_buckets": [
 		{
 			"binding": "MEDIA",
 			"bucket_name": "researchgxp-blog-media",
+			"remote": false,
 		},
 	],
-	// Sandboxed plugins require Worker Loader, available on Workers paid plans. Uncomment to enable:
+	"kv_namespaces": [
+		{
+			"binding": "SESSION",
+			"id": "35aa4fe6490f4b9cb3abebd3f1547e11"
+		}
+	],
+	// Sandboxed and marketplace plugins need Worker Loader. To enable them, uncomment this and add
+	// `sandboxRunner: sandbox()` (from "@emdash-cms/cloudflare") and
+	// `marketplace: "https://marketplace.emdashcms.com"` to emdash() in astro.config.mjs.
 	// "worker_loaders": [{ "binding": "LOADER" }],
 	// General maintenance cron trigger
 	"triggers": {

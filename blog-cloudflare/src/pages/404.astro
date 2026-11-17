@@ -1,203 +1,85 @@
 ---
 import Base from "../layouts/Base.astro";
+import { ui } from "../utils/ui";
+
+const t = ui.notFound;
 ---
 
-<Base title="Page not found">
-	<section class="band not-found">
-		<div class="not-found__backdrop" aria-hidden="true"></div>
-		<div class="frame not-found__inner">
-			<p class="eyebrow not-found__code">Error 404</p>
-			<h1 class="intro__title">Page not found</h1>
-			<p class="intro__lead">
-				The page you’re looking for doesn’t exist or may have moved.
-			</p>
-			<div class="not-found__actions">
-				<a href="/" class="btn">Go home</a>
-				<a href="/posts" class="btn btn--ghost">Browse posts</a>
-			</div>
-			<form
-				method="get"
-				action="/search"
-				role="search"
-				aria-label="Posts"
-				class="not-found__search"
-			>
-				<label for="not-found-query" class="sr-only">Search posts</label>
-				<svg
-					class="not-found__search-icon"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="1.75"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"
-					></path></svg
-				>
-				<input
-					id="not-found-query"
-					class="not-found__search-input"
-					type="search"
-					name="q"
-					placeholder="Or search posts"
-				/>
-				<button
-					type="submit"
-					class="btn not-found__search-submit"
-					aria-label="Search"
-				>
-					<svg
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.75"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"
-					>
-						<path d="M5 12h14"></path>
-						<path d="m12 5 7 7-7 7"></path>
-					</svg>
-				</button>
-			</form>
-		</div>
-	</section>
+<Base title={t.title} robots="noindex">
+	<div class="not-found">
+		<p class="kicker">404</p>
+		<h1>{t.heading}</h1>
+		<p set:html={t.text} />
+		<form method="get" action="/search" role="search">
+			<label for="nf-q" class="visually-hidden">
+				{t.label}
+			</label>
+			<input id="nf-q" type="search" name="q" placeholder={t.placeholder} />
+			<button type="submit">{t.button}</button>
+		</form>
+	</div>
 </Base>
 
 <style>
 	.not-found {
-		padding-block: clamp(4rem, 2.5rem + 6vw, 8rem);
+		display: grid;
+		gap: var(--spacing-4);
+		max-width: calc(var(--content-width) + 2 * var(--spacing-6));
+		margin-inline: auto;
+		padding: var(--spacing-16) var(--spacing-6) var(--spacing-20);
 	}
 
-	.not-found__backdrop {
-		position: absolute;
-		inset: 0;
-		background-image: radial-gradient(
-			circle,
-			var(--color-border-strong) 1px,
-			transparent 1.5px
-		);
-		background-position: center;
-		background-size: 16px 16px;
-		mask-image: radial-gradient(
-			ellipse 46% 58% at 50% 50%,
-			#000 15%,
-			transparent 75%
-		);
-		pointer-events: none;
+	.kicker {
+		font-family: var(--font-ui);
+		font-weight: 700;
+		color: var(--color-brand);
 	}
 
-	.not-found__inner {
-		position: relative;
+	h1 {
+		font-size: clamp(var(--font-size-3xl), 5vw, var(--font-size-5xl));
+		padding-bottom: var(--spacing-4);
+		border-bottom: var(--rule-heavy);
+		hyphens: manual;
+	}
+
+	a {
+		text-decoration: underline;
+		text-decoration-color: var(--color-brand);
+	}
+
+	form {
 		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-	}
-
-	.not-found__code {
-		display: inline-flex;
-		align-items: center;
 		gap: var(--spacing-2);
-		min-height: 28px;
-		padding: 2px 12px;
-		border-radius: var(--radius-full);
-		background: var(--color-surface);
-		box-shadow:
-			inset 0 0 0 1px var(--color-border),
-			var(--shadow-sm);
-		color: var(--color-text-secondary);
+		margin-top: var(--spacing-2);
 	}
 
-	.not-found__code::before {
-		content: "";
-		width: 6px;
-		height: 6px;
-		border-radius: var(--radius-full);
-		background: var(--color-muted);
-	}
-
-	.not-found__inner .intro__lead {
-		max-width: 40ch;
-		text-wrap: balance;
-	}
-
-	.not-found__actions {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: var(--spacing-3);
-		margin-top: var(--spacing-8);
-	}
-
-	.not-found__search {
-		position: relative;
-		width: min(100%, 340px);
-		margin-top: var(--spacing-6);
-	}
-
-	.not-found__search-icon {
-		position: absolute;
-		inset-inline-start: 16px;
-		top: 50%;
-		width: 16px;
-		height: 16px;
-		translate: 0 -50%;
-		color: var(--color-muted);
-		pointer-events: none;
-	}
-
-	.not-found__search-input {
-		display: block;
-		width: 100%;
-		height: 44px;
-		padding-block: 0;
-		padding-inline: 42px 48px;
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-full);
-		background: var(--color-surface);
-		color: var(--color-text);
+	input,
+	button {
 		font: inherit;
+		font-family: var(--font-ui);
 		font-size: var(--font-size-base);
-		-webkit-appearance: none;
-		appearance: none;
-		transition:
-			border-color var(--transition-fast),
-			box-shadow var(--transition-fast);
+		padding: var(--spacing-2) var(--spacing-3);
+		border: 1px solid var(--color-text);
+		border-radius: 0;
+		background: var(--color-bg);
+		color: var(--color-text);
 	}
 
-	.not-found__search-input::placeholder {
-		color: var(--color-muted);
+	input {
+		flex: 1;
+		min-width: 0;
 	}
 
-	.not-found__search-input::-webkit-search-cancel-button {
-		filter: grayscale(1);
+	button {
+		font-weight: 700;
+		background: var(--color-text);
+		color: var(--color-bg);
 		cursor: pointer;
 	}
 
-	.not-found__search-input:hover {
-		border-color: var(--color-border-strong);
-	}
-
-	/* Transparent rather than none so forced-colors mode still draws a ring */
-	.not-found__search-input:focus {
-		outline: 2px solid transparent;
-		border-color: var(--color-muted);
-		box-shadow: 0 0 0 3px var(--color-brand-ring);
-	}
-
-	.not-found__search-submit {
-		position: absolute;
-		top: 6px;
-		inset-inline-end: 6px;
-		width: 32px;
-		height: 32px;
-		min-height: 0;
-		padding: 0;
-	}
-
-	.not-found__search-submit svg:dir(rtl) {
-		scale: -1 1;
+	@media (max-width: 40rem) {
+		.not-found {
+			padding: var(--spacing-10) var(--spacing-4) var(--spacing-16);
+		}
 	}
 </style>

@@ -10,74 +10,78 @@
   both modes at once; use light-dark(<light>, <dark>) in an override to
   keep them distinct.
 
-  --font-body is defined by the font pipeline in astro.config.mjs, not
-  here. To swap the loaded webfont, edit the fonts entry there. To use a
-  system font, or a different face for headings only, override
-  --font-body / --font-heading in theme.css.
+  --font-body, --font-heading, and --font-display are defined by the
+  font pipeline in astro.config.mjs, not here. To swap a loaded
+  webfont, edit its fonts entry there. To use a system font instead,
+  override the variable in theme.css.
 */
 
 @layer base {
 	:root {
 		color-scheme: light dark;
 
-		/* Colors */
-		--color-bg: light-dark(#fafafa, #0a0a0a); /* page canvas */
-		--color-surface: light-dark(#ffffff, #141414); /* cards, inputs, menus */
-		--color-fill: light-dark(#f2f2f2, #1f1f1f); /* chips, code, hover fills */
-		--color-fill-strong: light-dark(#e8e8e8, #2a2a2a); /* hovered chips */
-		--color-bg-subtle: var(--color-fill); /* alternate rows, e.g. table stripes */
-		--color-text: light-dark(#171717, #ededed);
-		--color-text-secondary: light-dark(#525252, #a3a3a3);
-		--color-muted: light-dark(#6b6b6b, #8f8f8f); /* meta text, labels */
-		--color-border: light-dark(#e5e5e5, #262626); /* frame rails, dividers */
-		--color-border-subtle: light-dark(#efefef, #1c1c1c); /* dividers inside cards */
-		--color-border-strong: light-dark(#d4d4d4, #3a3a3a); /* rail crosshairs, input hover */
-		--color-ring: light-dark(rgb(0 0 0 / 0.07), rgb(255 255 255 / 0.09)); /* card hairline */
-		--color-media-outline: light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.1));
-		--color-shadow: light-dark(rgb(0 0 0 / 0.06), rgb(0 0 0 / 0.4));
-		--color-shadow-strong: light-dark(rgb(0 0 0 / 0.12), rgb(0 0 0 / 0.6));
-		--color-brand: light-dark(#171717, #fafafa); /* buttons, links, focus */
-		--color-brand-hover: light-dark(#404040, #d4d4d4);
-		--color-on-brand: light-dark(#ffffff, #0a0a0a);
-		--color-brand-ring: color-mix(in srgb, var(--color-brand) 15%, transparent);
+		/* Colors: ink, paper, and one red. No second accent. */
+		--color-bg: light-dark(#f7f5f0, #191713); /* paper */
+		--color-bg-subtle: light-dark(#efece5, #201e19);
+		--color-text: light-dark(#191713, #ede9e1); /* ink */
+		--color-text-secondary: light-dark(#3f3c36, #cfcac0);
+		--color-muted: light-dark(#6a665e, #a19c92); /* datelines, bylines, captions */
+		--color-border: light-dark(#d8d4cc, #3a362f); /* hairline rules */
+		--color-border-subtle: light-dark(#e6e2da, #2a2721);
+		--color-surface: light-dark(#efece5, #201e19);
+		--color-brand: light-dark(#c8102e, #f0596a); /* section labels, numbers, lead-ins */
+		--color-brand-hover: light-dark(#a00d25, #f57a88);
+		--color-on-brand: light-dark(#ffffff, #191713);
+		--color-brand-ring: color-mix(in srgb, var(--color-brand) 25%, transparent);
+
+		/* Rules: the signature. Columns are split by these, never by shadows or cards. */
+		--color-rule: var(--color-border);
+		--color-rule-strong: var(--color-text);
+		--rule-hair: 1px solid var(--color-rule); /* between columns and items */
+		--rule-strong: 1px solid var(--color-rule-strong); /* section tops */
+		--rule-heavy: 3px solid var(--color-rule-strong); /* under the nameplate, lead story */
+		--rule-double: 4px double var(--color-rule-strong); /* nameplate frame, footer top */
+		--column-gap: var(--spacing-6); /* half on each side of a vertical rule */
 
 		/* EmDash search theming */
-		--emdash-search-bg: var(--color-surface);
+		--emdash-search-bg: var(--color-bg);
 		--emdash-search-text: var(--color-text);
 		--emdash-search-muted: var(--color-muted);
 		--emdash-search-border: var(--color-border);
-		--emdash-search-hover: var(--color-fill);
+		--emdash-search-hover: var(--color-surface);
 		--emdash-search-highlight: var(--color-text);
 
-		/* Typography */
-		--font-heading: var(--font-body);
-		--font-weight-heading: 600; /* h2-h6, card and list titles */
-		--font-weight-display: 600; /* h1 and large page titles */
+		/* Typography: --font-body (Source Serif 4), --font-heading (Libre Franklin),
+		   and --font-display (Libre Caslon Display) come from astro.config.mjs. */
+		--font-ui: var(--font-heading); /* nav, meta, buttons */
+		--font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+		--font-weight-heading: 700; /* h2-h6, card and list titles */
+		--font-weight-display: 800; /* h1 and large page titles */
 
 		/* Type scale */
-		--font-size-label: 0.75rem; /* mono uppercase labels */
 		--font-size-xs: 0.8125rem;
 		--font-size-sm: 0.875rem;
-		--font-size-base: 1rem;
-		--font-size-lg: 1.125rem;
-		--font-size-xl: 1.25rem;
-		--font-size-2xl: 1.5rem;
-		--font-size-3xl: 2rem;
-		--font-size-4xl: 2.5rem;
-		--font-size-5xl: 3.5rem;
-		--font-size-display: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem); /* page titles */
+		--font-size-base: 1.125rem; /* serif body */
+		--font-size-lg: 1.25rem;
+		--font-size-xl: 1.5rem;
+		--font-size-2xl: 1.875rem;
+		--font-size-3xl: 2.375rem;
+		--font-size-4xl: 3rem;
+		--font-size-5xl: 3.75rem;
+		--font-size-nameplate: clamp(2.75rem, 11vw, 8.5rem); /* home masthead only */
+		--font-size-nameplate-compact: 1.75rem; /* sticky header elsewhere */
 
 		/* Line heights */
-		--leading-tight: 1.1;
+		--leading-tight: 1.15;
 		--leading-snug: 1.3;
 		--leading-normal: 1.5;
 		--leading-relaxed: 1.7;
 
 		/* Letter spacing */
-		--tracking-tight: -0.035em; /* h1 and large titles */
-		--tracking-snug: -0.02em; /* h2-h6, site/card titles */
-		--tracking-wide: 0.06em;
-		--tracking-wider: 0.08em; /* mono uppercase labels */
+		--tracking-tight: -0.02em; /* h1 and large titles */
+		--tracking-snug: -0.01em; /* h2-h6, site/card titles */
+		--tracking-wide: 0.06em; /* meta labels, TOC/widget titles */
+		--tracking-wider: 0.08em; /* footer headings, section labels */
 
 		/* Spacing */
 		--spacing-1: 0.25rem;
@@ -93,58 +97,31 @@
 		--spacing-20: 5rem;
 		--spacing-24: 6rem;
 
-		/* Legacy spacing aliases */
-		--spacing-xs: var(--spacing-1);
-		--spacing-sm: var(--spacing-2);
-		--spacing-md: var(--spacing-4);
-		--spacing-lg: var(--spacing-6);
-		--spacing-xl: var(--spacing-8);
-		--spacing-2xl: var(--spacing-12);
-		--spacing-3xl: var(--spacing-16);
-
 		/* Layout */
-		--content-width: 680px; /* article/page body column */
-		--wide-width: 1200px; /* frame width, rails included */
+		--content-width: 40rem; /* article body, about 65ch of serif text */
+		--wide-width: 80rem; /* max container (home, archives) */
 		--max-width: var(--content-width);
-		--frame-margin: clamp(0.75rem, 3vw, 2rem); /* viewport edge to rail */
-		--frame-padding: clamp(1rem, 3vw, 2rem); /* rail to content */
-		--frame-width: min(100% - 2 * var(--frame-margin), var(--wide-width));
-		--gutter-width: 200px; /* right rail (TOC, widgets) on article pages */
-		--meta-col-width: 180px; /* left meta rail on article pages */
-		--nav-height: 64px; /* sticky header height */
-		--search-input-width: 200px; /* header search box width */
+		--gutter-width: 200px; /* right sidebar column (TOC) on article pages */
+		--meta-col-width: 180px; /* left meta column on article pages */
+		--nav-height: 56px; /* sticky header height */
+		--search-input-width: 180px; /* nav search box width */
 
-		/* Radius: card = inset media + card padding, so corners stay concentric */
-		--radius-sm: 6px; /* small controls */
-		--radius: 8px; /* inputs, code */
-		--radius-lg: 12px; /* media inside cards */
-		--radius-xl: 18px; /* cards, panels */
-		--radius-full: 999px; /* pills: buttons, chips */
-		--card-padding: 6px; /* inset between card edge and its media */
+		/* Borders & radius */
+		--radius: 0; /* square corners throughout */
+		--radius-lg: 0;
 
-		/* Motion */
-		--ease-out: cubic-bezier(0.2, 0, 0, 1);
-		--transition-fast: 150ms var(--ease-out);
-		--transition-base: 250ms var(--ease-out);
+		/* Transitions */
+		--transition-fast: 120ms ease;
+		--transition-base: 180ms ease;
 
 		/* Avatars */
-		--avatar-size-xs: 20px; /* card and row bylines */
-		--avatar-size-sm: 24px; /* featured post bylines */
-		--avatar-size-md: 32px; /* post header bylines */
-		--avatar-size-lg: 40px; /* post meta rail */
+		--avatar-size-xs: 18px; /* card byline avatars */
+		--avatar-size-sm: 20px; /* post list byline avatars */
+		--avatar-size-md: 24px; /* featured post byline avatars */
+		--avatar-size-lg: 32px; /* single post byline avatars */
 
 		/* Misc */
-		--tag-padding-y: 2px; /* vertical padding on tag chips */
-
-		/* Shadows */
-		--shadow-sm: 0 1px 2px var(--color-shadow);
-		--shadow-card:
-			0 0 0 1px var(--color-ring), 0 1px 2px var(--color-shadow),
-			0 4px 12px -4px var(--color-shadow);
-		--shadow-card-hover:
-			0 0 0 1px var(--color-ring), 0 2px 4px var(--color-shadow),
-			0 16px 32px -12px var(--color-shadow-strong);
-		--shadow-lg: 0 0 0 1px var(--color-ring), 0 16px 40px -12px var(--color-shadow-strong);
+		--tag-padding-y: 2px; /* vertical padding on tag pills */
 	}
 
 	/*
@@ -154,22 +131,16 @@
 	@supports not (color: light-dark(#000, #fff)) {
 		:root {
 			color-scheme: light;
-			--color-bg: #fafafa;
-			--color-surface: #ffffff;
-			--color-fill: #f2f2f2;
-			--color-fill-strong: #e8e8e8;
-			--color-text: #171717;
-			--color-text-secondary: #525252;
-			--color-muted: #6b6b6b;
-			--color-border: #e5e5e5;
-			--color-border-subtle: #efefef;
-			--color-border-strong: #d4d4d4;
-			--color-ring: rgb(0 0 0 / 0.07);
-			--color-media-outline: rgb(0 0 0 / 0.1);
-			--color-shadow: rgb(0 0 0 / 0.06);
-			--color-shadow-strong: rgb(0 0 0 / 0.12);
-			--color-brand: #171717;
-			--color-brand-hover: #404040;
+			--color-bg: #f7f5f0;
+			--color-bg-subtle: #efece5;
+			--color-text: #191713;
+			--color-text-secondary: #3f3c36;
+			--color-muted: #6a665e;
+			--color-border: #d8d4cc;
+			--color-border-subtle: #e6e2da;
+			--color-surface: #efece5;
+			--color-brand: #c8102e;
+			--color-brand-hover: #a00d25;
 			--color-on-brand: #ffffff;
 		}
 	}

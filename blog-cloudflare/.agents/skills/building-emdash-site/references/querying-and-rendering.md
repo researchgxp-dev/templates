@@ -42,7 +42,7 @@ import { getEmDashEntry } from "emdash";
 const { entry: post, cacheHint } = await getEmDashEntry("posts", slug);
 
 if (!post) {
-	return Astro.rewrite("/404");
+	return Astro.redirect("/404");
 }
 ```
 
@@ -88,11 +88,11 @@ Query results include a `cacheHint` for Astro's Route Caching:
 ```astro
 ---
 const { entries: posts, cacheHint } = await getEmDashCollection("posts");
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+Astro.cache.set(cacheHint);
 ---
 ```
 
-When Astro's route cache is enabled, call `Astro.cache.set(cacheHint)` so publishing invalidates cached output.
+Always call `Astro.cache.set(cacheHint)` -- it enables automatic cache invalidation when content changes.
 
 ## Rendering Portable Text
 
@@ -109,45 +109,23 @@ Renders standard blocks (paragraphs, headings, lists, blockquotes, code blocks, 
 
 ### Custom block types
 
-For custom Portable Text objects that belong inside a rich-text document, pass a `components` prop:
+For custom PT blocks (e.g., marketing components), pass a `components` prop:
 
 ```astro
 ---
 import { PortableText } from "emdash/ui";
-import Diagram from "./blocks/Diagram.astro";
+import Hero from "./blocks/Hero.astro";
+import Features from "./blocks/Features.astro";
 
 const customTypes = {
-	"publication.diagram": Diagram,
+	"marketing.hero": Hero,
+	"marketing.features": Features,
 };
 ---
 <PortableText value={page.data.content} components={{ type: customTypes }} />
 ```
 
 Each custom component receives the block data as props.
-
-## Rendering a blocks field
-
-Use `Blocks` for an ordered composition stored in a `blocks` collection field. Map each generated `_type` to an Astro component at the call site.
-
-```astro
----
-import { Blocks, defineBlockComponents } from "emdash/ui";
-import type { PageLayoutBlock } from "../../emdash-env";
-import Hero from "../components/blocks/Hero.astro";
-import FeatureGrid from "../components/blocks/FeatureGrid.astro";
-
-const components = defineBlockComponents<PageLayoutBlock>({
-	hero: Hero,
-	feature_grid: FeatureGrid,
-});
----
-
-<Blocks value={page.data.layout} components={components} />
-```
-
-Each component receives `{ value, index, blockKey }`. The value retains `_version`, so a renderer can narrow old and active shapes. `Blocks` performs no database or network queries.
-
-An unmapped type produces a visible development placeholder. In production it renders the optional `fallback` component or no output. Ship renderer support before activating a new breaking block version.
 
 ## Image Component
 
@@ -160,6 +138,11 @@ import { Image } from "emdash/ui";
 
 {/* Correct -- passes the image object */}
 <Image image={post.data.featured_image} />
+
+{/* Also works with explicit props */}
+{post.data.featured_image?.src && (
+	<img src={post.data.featured_image.src} alt={post.data.featured_image.alt || ""} />
+)}
 ```
 
 **Common mistake:**
@@ -167,24 +150,6 @@ import { Image } from "emdash/ui";
 ```astro
 {/* WRONG -- image is an object, not a string */}
 <img src={post.data.featured_image} />
-```
-
-## File fields
-
-File field values from the Media Library have no `src`. Resolve the URL from `meta.storageKey`. Files added by URL (stored with `provider: "external"`) keep it in `src`. For a registered media provider such as Cloudflare Stream, `src` is only a preview image, so this does not apply.
-
-```astro
----
-const file = entry.data.video;
-const storageKey = typeof file?.meta?.storageKey === "string" ? file.meta.storageKey : undefined;
-const url = storageKey
-	? Astro.locals.emdash?.getPublicMediaUrl?.(storageKey)
-	: file?.provider === "external"
-		? file.src
-		: file?.url;
----
-
-{url && <video src={url} controls preload="metadata" />}
 ```
 
 ## Visual Editing Attributes
@@ -207,18 +172,23 @@ When an admin is logged in and views the site, these attributes enable click-to-
 
 ```astro
 ---
-import { getEmDashCollection } from "emdash";
+import { getEmDashCollection, getEntryTerms } from "emdash";
 import { Image } from "emdash/ui";
 import Base from "../../layouts/Base.astro";
 
 const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
 	orderBy: { published_at: "desc" },
-	limit: 20,
 });
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+Astro.cache.set(cacheHint);
+
+const sortedPosts = posts.toSorted((a, b) => {
+	const dateA = a.data.publishedAt?.getTime() ?? 0;
+	const dateB = b.data.publishedAt?.getTime() ?? 0;
+	return dateB - dateA;
+});
 ---
 <Base title="Posts">
-		{posts.map(post => (
+	{sortedPosts.map(post => (
 		<article>
 			{post.data.featured_image && <Image image={post.data.featured_image} />}
 			<a href={`/posts/${post.id}`}>{post.data.title}</a>
@@ -232,17 +202,17 @@ if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
 
 ```astro
 ---
-import { getEmDashEntry, getSeoMeta } from "emdash";
+import { getEmDashEntry, getEntryTerms, getSeoMeta } from "emdash";
 import { Image, PortableText } from "emdash/ui";
 import Base from "../../layouts/Base.astro";
 
 const { slug } = Astro.params;
-if (!slug) return Astro.rewrite("/404");
+if (!slug) return Astro.redirect("/404");
 
 const { entry: post, cacheHint } = await getEmDashEntry("posts", slug);
-if (!post) return Astro.rewrite("/404");
+if (!post) return Astro.redirect("/404");
 
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+Astro.cache.set(cacheHint);
 
 const seo = getSeoMeta(post, {
 	siteTitle: "My Blog",
@@ -250,7 +220,7 @@ const seo = getSeoMeta(post, {
 	path: `/posts/${slug}`,
 });
 
-const tags = post.data.terms?.tag ?? [];
+const tags = await getEntryTerms("posts", post.data.id, "tag");
 ---
 <Base title={seo.title} description={seo.description}>
 	<article>
@@ -274,23 +244,17 @@ const tags = post.data.terms?.tag ?? [];
 
 ```astro
 ---
-import { getTaxonomyTermsWithCacheHint, getEmDashCollection } from "emdash";
+import { getTerm, getEmDashCollection } from "emdash";
 import Base from "../../layouts/Base.astro";
 
 const { slug } = Astro.params;
-const termsResult = await getTaxonomyTermsWithCacheHint("category", { includeCounts: false });
-const term = slug ? termsResult.data.find((item) => item.slug === slug) : null;
-if (!term) return Astro.rewrite("/404");
+const term = slug ? await getTerm("category", slug) : null;
+if (!term) return Astro.redirect("/404");
 
-const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
+const { entries: posts } = await getEmDashCollection("posts", {
 	where: { category: term.slug },
 	orderBy: { published_at: "desc" },
-	limit: 20,
 });
-if (Astro.cache?.enabled) {
-	Astro.cache.set(termsResult.cacheHint);
-	Astro.cache.set(cacheHint);
-}
 ---
 <Base title={`${term.label} posts`}>
 	<h1>{term.label}</h1>

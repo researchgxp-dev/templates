@@ -1,11 +1,10 @@
 node_modules
+.pnpm-store
 dist
 .astro
 .emdash/migrations.json
 uploads
 data.db
-data.db-*
-.wrangler
 
 # Environment / Wrangler secrets
 .env
@@ -13,3 +12,12 @@ data.db-*
 !.env.example
 .dev.vars
 .dev.vars.*
+
+# Local Workers state (D1/R2/KV)
+.wrangler
+
+# Local agent settings
+.claude/settings.local.json
+
+# Lighthouse CI reports
+.lighthouseci

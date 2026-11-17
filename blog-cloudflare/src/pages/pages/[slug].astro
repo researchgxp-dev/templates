@@ -1,14 +1,9 @@
 ---
-import {
-	getEmDashEntry,
-	getSeoMeta,
-	decodeSlug,
-	getSiteSettings,
-} from "emdash";
+import { getEmDashEntry, decodeSlug } from "emdash";
 import { PortableText } from "emdash/ui";
 import Base from "../../layouts/Base.astro";
-import { resolveBlogSiteIdentity } from "../../utils/site-identity";
-import "../../styles/prose.css";
+import { extractText } from "../../utils/reading-time";
+import { PAGE_CACHE } from "../../utils/cache";
 
 const slug = decodeSlug(Astro.params.slug);
 
@@ -22,63 +17,44 @@ if (!page) {
 	return Astro.rewrite("/404");
 }
 
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
-const { siteTitle } = resolveBlogSiteIdentity(await getSiteSettings());
-const seo = getSeoMeta(page, {
-	siteTitle,
-	siteUrl: Astro.url.origin,
-	path: Astro.url.pathname.replace(/\/$/, ""),
-});
+if (Astro.cache?.enabled) Astro.cache.set({ ...cacheHint, ...PAGE_CACHE });
+
+// Pages have no excerpt field, so the meta description is the opening text.
+const text = extractText(page.data.content);
+const description = text.length > 160 ? `${text.slice(0, 157).replace(/\s+\S*$/, "")}…` : text;
 ---
 
 <Base
-	title={seo.title}
-	pageTitle={seo.ogTitle}
-	description={seo.description}
-	canonical={seo.canonical}
-	robots={seo.robots}
+	title={page.data.title}
+	description={description || undefined}
 	content={{ collection: "pages", id: page.data.id, slug }}
 >
-	<article class="band page">
-		<div class="frame page__layout">
-			<header class="page__header">
-				<h1 class="page__title" {...page.edit.title}>{page.data.title}</h1>
-			</header>
-
-			<div class="prose page__body" {...page.edit.content}>
-				<PortableText value={page.data.content} />
-			</div>
+	<article class="page">
+		<h1 {...page.edit.title}>{page.data.title}</h1>
+		<div class="prose">
+			<PortableText value={page.data.content} />
 		</div>
 	</article>
 </Base>
 
 <style>
 	.page {
-		padding-block: clamp(3rem, 2rem + 4vw, 5.5rem) clamp(4rem, 3rem + 4vw, 7rem);
+		max-width: calc(var(--content-width) + 2 * var(--spacing-6));
+		margin-inline: auto;
+		padding: var(--spacing-10) var(--spacing-6) var(--spacing-16);
 	}
 
-	.page__layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		gap: var(--spacing-8);
+	h1 {
+		font-size: clamp(var(--font-size-3xl), 5vw, var(--font-size-5xl));
+		padding-bottom: var(--spacing-4);
+		margin-bottom: var(--spacing-8);
+		border-bottom: var(--rule-heavy);
+		hyphens: manual;
 	}
 
-	.page__title {
-		font-size: var(--font-size-display);
-		line-height: 1.05;
-		max-width: 22ch;
-	}
-
-	@media (min-width: 960px) {
-		.page__layout {
-			grid-template-columns: minmax(14rem, 1fr) minmax(0, var(--content-width));
-			column-gap: clamp(2rem, 1rem + 4vw, 6rem);
-		}
-
-		.page__header {
-			position: sticky;
-			top: calc(var(--nav-height) + var(--spacing-8));
-			align-self: start;
+	@media (max-width: 40rem) {
+		.page {
+			padding: var(--spacing-6) var(--spacing-4) var(--spacing-12);
 		}
 	}
 </style>
